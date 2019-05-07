@@ -17,6 +17,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
@@ -33,13 +34,15 @@ import java.net.URL;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-    String id, name, username, email, addr, street, suite, city, zipcode;
+    String id, name, username, email, addr, noHp, street, suite, city, zipcode;
     private RecyclerView recyclerView;
     private UsersAdapter adapter;
+    private KontakAdapter kontakAdapter;
     private Button btnGet;
     private HttpURLConnection connection = null;
     private BufferedReader reader = null;
     private ArrayList<Users> usersArrayList;
+    private ArrayList<Kontak> kontakArrayList;
     SwipeRefreshLayout mSwipeRefreshLayout;
     ProgressDialog progressDialog;
 
@@ -53,12 +56,13 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
 
         rq = Volley.newRequestQueue(MainActivity.this);
-        makeJSONArrayRequest();
+        //makeJSONArrayRequest();
+        makeJSONObjectRequest();
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                makeJSONArrayRequest();
+                makeJSONObjectRequest();
             }
         });
 
@@ -66,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         btnGet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                makeJSONArrayRequest();
+                makeJSONObjectRequest();
             }
         });
 
@@ -77,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setMessage("Please Wait");
         progressDialog.setCancelable(false);
         progressDialog.show();
-        String reqURL = "https://jsonplaceholder.typicode.com/users";
+        String reqURL = "http://210.210.154.65/MyProject/public/kontak";
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, reqURL, null,
                 new Response.Listener<JSONArray>() {
                     @Override
@@ -126,6 +130,58 @@ public class MainActivity extends AppCompatActivity {
         });
 
         rq.add(jsonArrayRequest);
+    }
+
+    public void makeJSONObjectRequest (){
+
+        progressDialog = new ProgressDialog(MainActivity.this);
+        progressDialog.setMessage("Please Wait");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        String reqURL = "http://210.210.154.65/MyProject/public/kontak";
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, reqURL, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        kontakArrayList = new ArrayList<>();
+                        try {
+                                JSONArray values = response.getJSONArray("values");
+                            for (int i = 0; i < values.length(); i++) {
+                                //create a JSONObject for  fetching single user data
+                                JSONObject userDetail = values.getJSONObject(i);
+
+                                id = userDetail.getString("id");
+                                name = userDetail.getString("nama");
+                                email = userDetail.getString("email"); // green words means json key
+                                addr = userDetail.getString("alamat");
+                                noHp = userDetail.getString("nohp");
+
+
+                                kontakArrayList.add(new Kontak(id, name, email, addr, noHp));
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        mSwipeRefreshLayout.setRefreshing(false);
+                        progressDialog.dismiss();
+
+                        kontakAdapter = new KontakAdapter(kontakArrayList);
+                        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(MainActivity.this);
+                        recyclerView.setLayoutManager(layoutManager);
+                        recyclerView.setAdapter(kontakAdapter);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                mSwipeRefreshLayout.setRefreshing(false);
+                progressDialog.dismiss();
+                Log.i("Volley error : ", String.valueOf(error));
+
+            }
+        });
+
+        rq.add(jsonObjectRequest);
+
     }
 
 }
