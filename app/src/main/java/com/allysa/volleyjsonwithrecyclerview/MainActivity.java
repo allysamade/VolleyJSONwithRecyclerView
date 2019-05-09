@@ -2,9 +2,11 @@ package com.allysa.volleyjsonwithrecyclerview;
 
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.design.widget.FloatingActionButton;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,7 +21,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,14 +46,15 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Kontak> kontakArrayList;
     SwipeRefreshLayout mSwipeRefreshLayout;
     ProgressDialog progressDialog;
-
     RequestQueue rq;
+    FloatingActionButton fabAdd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         btnGet = (Button) findViewById(R.id.btnGet);
+        fabAdd = (FloatingActionButton) findViewById(R.id.fabAdd);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
 
         rq = Volley.newRequestQueue(MainActivity.this);
@@ -63,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 makeJSONObjectRequest();
+                //makeJSONArrayReqest();
             }
         });
 
@@ -74,6 +77,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        fabAdd.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(),InputKontakActivity.class);
+                startActivity(intent);
+            }
+
+
+
+        });
+
     }
 
     public void makeJSONArrayRequest(){
@@ -81,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setMessage("Please Wait");
         progressDialog.setCancelable(false);
         progressDialog.show();
-        String reqURL = "http://210.210.154.65/MyProject/public/kontak";
+        String reqURL = "http://210.210.154.65/api/kontak";
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, reqURL, null,
                 new Response.Listener<JSONArray>() {
                     @Override
@@ -138,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setMessage("Please Wait");
         progressDialog.setCancelable(false);
         progressDialog.show();
-        String reqURL = "http://210.210.154.65/MyProject/public/kontak";
+        String reqURL = "http://210.210.154.65/api/kontak";
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, reqURL, null,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -183,5 +197,10 @@ public class MainActivity extends AppCompatActivity {
         rq.add(jsonObjectRequest);
 
     }
+
+    public void DeleteJSONObjectRequest () {
+
+    }
+
 
 }
